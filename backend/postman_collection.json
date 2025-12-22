@@ -1,0 +1,178 @@
+{
+  "info": {
+    "name": "Todo API",
+    "description": "Collection for testing Todo API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Get All Todos",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/todos",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["todos"]
+        }
+      }
+    },
+    {
+      "name": "Create Todo",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"text\": \"New Todo\", \"completed\": false}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/todos",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["todos"]
+        }
+      }
+    },
+    {
+      "name": "Get Todo by ID (ID=2)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/todos/2",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["todos", "2"]
+        }
+      }
+    },
+    {
+      "name": "Update Todo (Full, ID=1)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"text\": \"Updated Todo\", \"completed\": true}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/todos/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["todos", "1"]
+        }
+      }
+    },
+    {
+      "name": "Update Todo (Partial, ID=1)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"completed\": true}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/todos/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["todos", "1"]
+        }
+      }
+    },
+    {
+      "name": "Delete Todo (ID=1)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/todos/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["todos", "1"]
+        }
+      }
+    },
+    {
+      "name": "Bypass CORS",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/bypass-cors/https://jsonplaceholder.typicode.com/todos/1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": [
+            "bypass-cors",
+            "https:",
+            "",
+            "jsonplaceholder.typicode.com",
+            "todos",
+            "1"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Bypass CORS (POST)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"test\": \"data\"}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/bypass-cors/https://httpbin.org/post",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["bypass-cors", "https:", "", "httpbin.org", "post"]
+        }
+      }
+    },
+    {
+      "name": "Bypass CORS (HTML)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/bypass-cors/https://httpbin.org/html",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["bypass-cors", "https:", "", "httpbin.org", "html"]
+        }
+      }
+    }
+  ]
+}
