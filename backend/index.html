@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo API Test Suite</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
+
+      header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      header p {
+        opacity: 0.9;
+        font-size: 1.1em;
+      }
+
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        padding: 30px;
+      }
+
+      .section {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 25px;
+        border: 1px solid #e0e0e0;
+      }
+
+      .section h2 {
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 1.5em;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 10px;
+      }
+
+      .api-group {
+        margin-bottom: 25px;
+      }
+
+      .api-group h3 {
+        color: #444;
+        margin-bottom: 12px;
+        font-size: 1.1em;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        color: #555;
+        font-weight: 600;
+      }
+
+      input[type="text"],
+      input[type="number"],
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+      }
+
+      input:focus,
+      textarea:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      textarea {
+        min-height: 80px;
+        font-family: "Courier New", monospace;
+        resize: vertical;
+      }
+
+      .checkbox-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+      }
+
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: transform 0.2s, box-shadow 0.2s;
+        width: 100%;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      .btn-danger {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      }
+
+      .btn-warning {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      }
+
+      .btn-info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      }
+
+      #response {
+        background: #1e1e1e;
+        color: #d4d4d4;
+        padding: 20px;
+        border-radius: 8px;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        line-height: 1.6;
+        max-height: 600px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+
+      .response-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .clear-btn {
+        padding: 8px 16px;
+        font-size: 12px;
+        width: auto;
+        background: #444;
+      }
+
+      .todo-item {
+        background: white;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        border-left: 4px solid #667eea;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .todo-item.completed {
+        opacity: 0.6;
+        border-left-color: #28a745;
+      }
+
+      .todo-text {
+        flex: 1;
+      }
+
+      .todo-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .todo-actions button {
+        width: auto;
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+
+      #todoList {
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 10px;
+      }
+
+      .status-success {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status-error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .full-width {
+        grid-column: 1 / -1;
+      }
+
+      .url-display {
+        background: #fff3cd;
+        padding: 10px;
+        border-radius: 6px;
+        font-family: "Courier New", monospace;
+        font-size: 12px;
+        margin-bottom: 10px;
+        word-break: break-all;
+      }
+
+      @media (max-width: 1024px) {
+        .main-content {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>🚀 Todo API Test Suite</h1>
+        <p>Professional API Testing Interface - Full CRUD Operations</p>
+      </header>
+
+      <div class="main-content">
+        <div class="section">
+          <h2>📋 Todo List Manager</h2>
+
+          <div class="api-group">
+            <h3>Get All Todos</h3>
+            <button onclick="getAllTodos()">📥 Fetch All Todos</button>
+          </div>
+
+          <div class="api-group">
+            <h3>Get Todo by ID</h3>
+            <div class="form-group">
+              <label>Todo ID:</label>
+              <input type="number" id="getTodoId" placeholder="Enter todo ID" />
+            </div>
+            <button onclick="getTodoById()">🔍 Get Todo</button>
+          </div>
+
+          <div class="api-group">
+            <h3>Create New Todo</h3>
+            <div class="form-group">
+              <label>Todo Text:</label>
+              <input
+                type="text"
+                id="createText"
+                placeholder="Enter todo text"
+              />
+            </div>
+            <div class="form-group">
+              <div class="checkbox-group">
+                <input type="checkbox" id="createCompleted" />
+                <label for="createCompleted">Completed</label>
+              </div>
+            </div>
+            <button onclick="createTodo()">➕ Create Todo</button>
+          </div>
+
+          <div id="todoList"></div>
+        </div>
+
+        <div class="section">
+          <h2>✏️ Update & Delete Operations</h2>
+
+          <div class="api-group">
+            <h3>Full Update (PUT)</h3>
+            <div class="form-group">
+              <label>Todo ID:</label>
+              <input type="number" id="putId" placeholder="Enter todo ID" />
+            </div>
+            <div class="form-group">
+              <label>New Text:</label>
+              <input type="text" id="putText" placeholder="Enter new text" />
+            </div>
+            <div class="form-group">
+              <div class="checkbox-group">
+                <input type="checkbox" id="putCompleted" />
+                <label for="putCompleted">Completed</label>
+              </div>
+            </div>
+            <button class="btn-warning" onclick="updateTodoFull()">
+              🔄 Full Update
+            </button>
+          </div>
+
+          <div class="api-group">
+            <h3>Partial Update (PATCH)</h3>
+            <div class="form-group">
+              <label>Todo ID:</label>
+              <input type="number" id="patchId" placeholder="Enter todo ID" />
+            </div>
+            <div class="form-group">
+              <label>JSON Data (optional fields):</label>
+              <textarea
+                id="patchData"
+                placeholder='{"text": "Updated text"} or {"completed": true}'
+              ></textarea>
+            </div>
+            <button class="btn-info" onclick="updateTodoPartial()">
+              🔧 Partial Update
+            </button>
+          </div>
+
+          <div class="api-group">
+            <h3>Delete Todo</h3>
+            <div class="form-group">
+              <label>Todo ID:</label>
+              <input
+                type="number"
+                id="deleteId"
+                placeholder="Enter todo ID to delete"
+              />
+            </div>
+            <button class="btn-danger" onclick="deleteTodo()">
+              🗑️ Delete Todo
+            </button>
+          </div>
+
+          <div class="api-group">
+            <h3>CORS Bypass Proxy</h3>
+            <div class="form-group">
+              <label>Target URL:</label>
+              <input
+                type="text"
+                id="corsUrl"
+                placeholder="https://api.example.com/data"
+              />
+            </div>
+            <button class="btn-info" onclick="bypassCors()">
+              🌐 Fetch via Proxy
+            </button>
+          </div>
+        </div>
+
+        <div class="section full-width">
+          <div class="response-header">
+            <h2>📡 API Response</h2>
+            <button class="clear-btn" onclick="clearResponse()">Clear</button>
+          </div>
+          <div id="response">Waiting for API call...</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:3000";
+
+      function displayResponse(data, status, url, method) {
+        const responseDiv = document.getElementById("response");
+        const timestamp = new Date().toLocaleString();
+        const statusClass = status >= 200 && status < 300 ? "SUCCESS" : "ERROR";
+
+        responseDiv.innerHTML = `
+┌─────────────────────────────────────────────────────────────────
+│ ${method} ${url}
+│ Status: ${status} ${statusClass}
+│ Time: ${timestamp}
+├─────────────────────────────────────────────────────────────────
+
+${JSON.stringify(data, null, 2)}
+
+└─────────────────────────────────────────────────────────────────`;
+      }
+
+      function displayError(error, url, method) {
+        const responseDiv = document.getElementById("response");
+        const timestamp = new Date().toLocaleString();
+
+        responseDiv.innerHTML = `
+┌─────────────────────────────────────────────────────────────────
+│ ${method} ${url}
+│ Status: ERROR
+│ Time: ${timestamp}
+├─────────────────────────────────────────────────────────────────
+
+❌ Error: ${error.message}
+
+${error.stack || ""}
+
+└─────────────────────────────────────────────────────────────────`;
+      }
+
+      function clearResponse() {
+        document.getElementById("response").innerHTML =
+          "Waiting for API call...";
+      }
+
+      async function apiCall(endpoint, method = "GET", body = null) {
+        try {
+          const url = `${API_BASE}${endpoint}`;
+          const options = {
+            method,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          };
+
+          if (body) {
+            options.body = JSON.stringify(body);
+          }
+
+          const response = await fetch(url, options);
+          const data = await response.json();
+          displayResponse(data, response.status, url, method);
+
+          if (method !== "DELETE" && endpoint.includes("/todos")) {
+            setTimeout(getAllTodos, 500);
+          }
+
+          return data;
+        } catch (error) {
+          displayError(error, `${API_BASE}${endpoint}`, method);
+        }
+      }
+
+      async function getAllTodos() {
+        const data = await apiCall("/todos", "GET");
+        if (data && data.data) {
+          renderTodoList(data.data);
+        }
+      }
+
+      async function getTodoById() {
+        const id = document.getElementById("getTodoId").value;
+        if (!id) {
+          alert("Please enter a todo ID");
+          return;
+        }
+        await apiCall(`/todos/${id}`, "GET");
+      }
+
+      async function createTodo() {
+        const text = document.getElementById("createText").value;
+        const completed = document.getElementById("createCompleted").checked;
+
+        if (!text) {
+          alert("Please enter todo text");
+          return;
+        }
+
+        await apiCall("/todos", "POST", { text, completed });
+        document.getElementById("createText").value = "";
+        document.getElementById("createCompleted").checked = false;
+      }
+
+      async function updateTodoFull() {
+        const id = document.getElementById("putId").value;
+        const text = document.getElementById("putText").value;
+        const completed = document.getElementById("putCompleted").checked;
+
+        if (!id || !text) {
+          alert("Please enter both ID and text");
+          return;
+        }
+
+        await apiCall(`/todos/${id}`, "PUT", { text, completed });
+      }
+
+      async function updateTodoPartial() {
+        const id = document.getElementById("patchId").value;
+        const dataText = document.getElementById("patchData").value;
+
+        if (!id || !dataText) {
+          alert("Please enter both ID and JSON data");
+          return;
+        }
+
+        try {
+          const data = JSON.parse(dataText);
+          await apiCall(`/todos/${id}`, "PATCH", data);
+        } catch (error) {
+          alert("Invalid JSON format");
+        }
+      }
+
+      async function deleteTodo() {
+        const id = document.getElementById("deleteId").value;
+        if (!id) {
+          alert("Please enter a todo ID");
+          return;
+        }
+
+        if (confirm(`Are you sure you want to delete todo #${id}?`)) {
+          await apiCall(`/todos/${id}`, "DELETE");
+          setTimeout(getAllTodos, 500);
+        }
+      }
+
+      async function bypassCors() {
+        const targetUrl = document.getElementById("corsUrl").value;
+        if (!targetUrl) {
+          alert("Please enter a target URL");
+          return;
+        }
+
+        await apiCall(`/bypass-cors/${encodeURIComponent(targetUrl)}`, "GET");
+      }
+
+      function renderTodoList(todos) {
+        const todoListDiv = document.getElementById("todoList");
+
+        if (!todos || todos.length === 0) {
+          todoListDiv.innerHTML =
+            '<p style="text-align: center; color: #999; padding: 20px;">No todos found</p>';
+          return;
+        }
+
+        todoListDiv.innerHTML = `
+                <h3 style="margin-top: 20px; margin-bottom: 15px;">Current Todos (${
+                  todos.length
+                })</h3>
+                ${todos
+                  .map(
+                    (todo) => `
+                    <div class="todo-item ${todo.completed ? "completed" : ""}">
+                        <div class="todo-text">
+                            <strong>#${todo.id}</strong> ${todo.text}
+                            <span class="status-badge ${
+                              todo.completed ? "status-success" : "status-error"
+                            }">
+                                ${todo.completed ? "✓ Done" : "○ Pending"}
+                            </span>
+                        </div>
+                        <div class="todo-actions">
+                            <button class="btn-warning" onclick="quickEdit(${
+                              todo.id
+                            }, '${todo.text.replace(/'/g, "\\'")}', ${
+                      todo.completed
+                    })">Edit</button>
+                            <button class="btn-danger" onclick="quickDelete(${
+                              todo.id
+                            })">Delete</button>
+                        </div>
+                    </div>
+                `
+                  )
+                  .join("")}
+            `;
+      }
+
+      function quickEdit(id, text, completed) {
+        document.getElementById("patchId").value = id;
+        document.getElementById("patchData").value = JSON.stringify(
+          { text, completed: !completed },
+          null,
+          2
+        );
+        window.scrollTo({
+          top: document.querySelector(".section:nth-child(2)").offsetTop - 20,
+          behavior: "smooth",
+        });
+      }
+
+      async function quickDelete(id) {
+        if (confirm(`Delete todo #${id}?`)) {
+          await apiCall(`/todos/${id}`, "DELETE");
+          setTimeout(getAllTodos, 500);
+        }
+      }
+
+      window.onload = function () {
+        getAllTodos();
+      };
+    </script>
+  </body>
+</html>
