@@ -89,7 +89,8 @@
 
       input[type="text"],
       input[type="number"],
-      textarea {
+      textarea,
+      select {
         width: 100%;
         padding: 10px;
         border: 2px solid #ddd;
@@ -99,7 +100,8 @@
       }
 
       input:focus,
-      textarea:focus {
+      textarea:focus,
+      select:focus {
         outline: none;
         border-color: #667eea;
       }
@@ -321,10 +323,11 @@
               <input type="text" id="putText" placeholder="Enter new text" />
             </div>
             <div class="form-group">
-              <div class="checkbox-group">
-                <input type="checkbox" id="putCompleted" />
-                <label for="putCompleted">Completed</label>
-              </div>
+              <label>Completed:</label>
+              <select id="putCompleted">
+                <option value="true">Completed</option>
+                <option value="false">Pending</option>
+              </select>
             </div>
             <button class="btn-warning" onclick="updateTodoFull()">
               🔄 Full Update
@@ -338,11 +341,21 @@
               <input type="number" id="patchId" placeholder="Enter todo ID" />
             </div>
             <div class="form-group">
-              <label>JSON Data (optional fields):</label>
-              <textarea
-                id="patchData"
-                placeholder='{"text": "Updated text"} or {"completed": true}'
-              ></textarea>
+              <div class="checkbox-group">
+                <input type="checkbox" id="patchTextCheck" />
+                <label for="patchTextCheck">Update Title</label>
+              </div>
+              <input type="text" id="patchText" placeholder="Enter new text" />
+            </div>
+            <div class="form-group">
+              <div class="checkbox-group">
+                <input type="checkbox" id="patchCompletedCheck" />
+                <label for="patchCompletedCheck">Update Completed</label>
+              </div>
+              <select id="patchCompleted">
+                <option value="true">Completed</option>
+                <option value="false">Pending</option>
+              </select>
             </div>
             <button class="btn-info" onclick="updateTodoPartial()">
               🔧 Partial Update
@@ -371,12 +384,27 @@
               <input
                 type="text"
                 id="corsUrl"
-                placeholder="https://api.example.com/data"
+                placeholder="e.g., https://jsonplaceholder.typicode.com/todos/1"
               />
+            </div>
+            <div class="form-group">
+              <label>Method:</label>
+              <select id="corsMethod">
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Request Body (optional, for POST):</label>
+              <textarea id="corsBody" placeholder='{"key": "value"}'></textarea>
             </div>
             <button class="btn-info" onclick="bypassCors()">
               🌐 Fetch via Proxy
             </button>
+            <p style="font-size: 12px; color: #666; margin-top: 10px">
+              Examples: https://jsonplaceholder.typicode.com/todos/1 (GET) |
+              https://httpbin.org/post (POST) | https://httpbin.org/html (GET)
+            </p>
           </div>
         </div>
 
@@ -398,14 +426,22 @@
         const timestamp = new Date().toLocaleString();
         const statusClass = status >= 200 && status < 300 ? "SUCCESS" : "ERROR";
 
-        responseDiv.innerHTML = `
+        // Nếu data có content (HTML/text response), hiển thị dưới dạng text
+        let displayContent;
+        if (data && data.content) {
+          displayContent = `${data.message || "Response"}:\n\n${data.content}`;
+        } else {
+          displayContent = JSON.stringify(data, null, 2);
+        }
+
+        responseDiv.textContent = `
 ┌─────────────────────────────────────────────────────────────────
 │ ${method} ${url}
 │ Status: ${status} ${statusClass}
 │ Time: ${timestamp}
 ├─────────────────────────────────────────────────────────────────
 
-${JSON.stringify(data, null, 2)}
+${displayContent}
 
 └─────────────────────────────────────────────────────────────────`;
       }
@@ -448,12 +484,22 @@ ${error.stack || ""}
           }
 
           const response = await fetch(url, options);
-          const data = await response.json();
-          displayResponse(data, response.status, url, method);
+          const contentType = response.headers.get("content-type");
+          let data;
 
-          if (method !== "DELETE" && endpoint.includes("/todos")) {
-            setTimeout(getAllTodos, 500);
+          // Kiểm tra content-type trước khi đọc body
+          if (contentType && contentType.includes("application/json")) {
+            data = await response.json();
+          } else {
+            // Đọc text cho HTML hoặc plain text
+            const text = await response.text();
+            data = {
+              message: `Response (${contentType || "unknown type"})`,
+              content: text,
+            };
           }
+
+          displayResponse(data, response.status, url, method);
 
           return data;
         } catch (error) {
@@ -494,7 +540,8 @@ ${error.stack || ""}
       async function updateTodoFull() {
         const id = document.getElementById("putId").value;
         const text = document.getElementById("putText").value;
-        const completed = document.getElementById("putCompleted").checked;
+        const completed =
+          document.getElementById("putCompleted").value === "true";
 
         if (!id || !text) {
           alert("Please enter both ID and text");
@@ -502,23 +549,48 @@ ${error.stack || ""}
         }
 
         await apiCall(`/todos/${id}`, "PUT", { text, completed });
+        document.getElementById("putId").value = "";
+        document.getElementById("putText").value = "";
+        document.getElementById("putCompleted").value = "false";
       }
 
       async function updateTodoPartial() {
         const id = document.getElementById("patchId").value;
-        const dataText = document.getElementById("patchData").value;
+        const updateText = document.getElementById("patchTextCheck").checked;
+        const updateCompleted = document.getElementById(
+          "patchCompletedCheck"
+        ).checked;
+        const text = document.getElementById("patchText").value;
+        const completed =
+          document.getElementById("patchCompleted").value === "true";
 
-        if (!id || !dataText) {
-          alert("Please enter both ID and JSON data");
+        if (!id) {
+          alert("Please enter todo ID");
           return;
         }
 
-        try {
-          const data = JSON.parse(dataText);
-          await apiCall(`/todos/${id}`, "PATCH", data);
-        } catch (error) {
-          alert("Invalid JSON format");
+        if (!updateText && !updateCompleted) {
+          alert("Please select at least one field to update");
+          return;
         }
+
+        const data = {};
+        if (updateText) {
+          if (!text.trim()) {
+            alert("Please enter text to update");
+            return;
+          }
+          data.text = text;
+        }
+        if (updateCompleted) {
+          data.completed = completed; // true = complete, false = pending
+        }
+
+        await apiCall(`/todos/${id}`, "PATCH", data);
+        document.getElementById("patchTextCheck").checked = false;
+        document.getElementById("patchText").value = "";
+        document.getElementById("patchCompletedCheck").checked = false;
+        document.getElementById("patchCompleted").value = "false";
       }
 
       async function deleteTodo() {
@@ -530,18 +602,34 @@ ${error.stack || ""}
 
         if (confirm(`Are you sure you want to delete todo #${id}?`)) {
           await apiCall(`/todos/${id}`, "DELETE");
-          setTimeout(getAllTodos, 500);
         }
       }
 
       async function bypassCors() {
         const targetUrl = document.getElementById("corsUrl").value;
+        const method = document.getElementById("corsMethod").value;
+        const body = document.getElementById("corsBody").value;
+
         if (!targetUrl) {
           alert("Please enter a target URL");
           return;
         }
 
-        await apiCall(`/bypass-cors/${encodeURIComponent(targetUrl)}`, "GET");
+        let requestBody = null;
+        if (body.trim()) {
+          try {
+            requestBody = JSON.parse(body);
+          } catch (error) {
+            alert("Invalid JSON in request body");
+            return;
+          }
+        }
+
+        await apiCall(
+          `/bypass-cors/${encodeURIComponent(targetUrl)}`,
+          method,
+          requestBody
+        );
       }
 
       function renderTodoList(todos) {
@@ -588,11 +676,12 @@ ${error.stack || ""}
 
       function quickEdit(id, text, completed) {
         document.getElementById("patchId").value = id;
-        document.getElementById("patchData").value = JSON.stringify(
-          { text, completed: !completed },
-          null,
-          2
-        );
+        document.getElementById("patchTextCheck").checked = true;
+        document.getElementById("patchText").value = text;
+        document.getElementById("patchCompletedCheck").checked = true;
+        document.getElementById("patchCompleted").value = completed
+          ? "true"
+          : "false";
         window.scrollTo({
           top: document.querySelector(".section:nth-child(2)").offsetTop - 20,
           behavior: "smooth",
@@ -602,7 +691,6 @@ ${error.stack || ""}
       async function quickDelete(id) {
         if (confirm(`Delete todo #${id}?`)) {
           await apiCall(`/todos/${id}`, "DELETE");
-          setTimeout(getAllTodos, 500);
         }
       }
 
